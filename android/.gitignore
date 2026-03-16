@@ -1,0 +1,12 @@
+*.iml
+.gradle
+/local.properties
+/.idea/*
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+# Entra ID auth config contains real credentials — only the template is committed
+/app/src/main/res/raw/auth_config_single_account.json
