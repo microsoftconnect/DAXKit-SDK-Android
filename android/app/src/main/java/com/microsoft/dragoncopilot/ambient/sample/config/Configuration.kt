@@ -19,10 +19,10 @@ import java.util.Date
  */
 class Configuration {
     companion object {
-        const val PARTNER_ID = "dd421ff7-fda5-49c1-bd3a-70a7df54642e"
-        const val PRODUCT_ID = "03f7077b-4f0e-41b8-a79c-f37926efcb8d"
-        const val CUSTOMER_ID = "01bd0d47-1621-4a29-941d-00e9a9420f20"
-        const val USER_ID = "6a28c48e-0cef-4b7f-b9a8-594f45a6cb66"
+        const val PARTNER_ID = "[PARTNER_ID]"
+        const val PRODUCT_ID = "[PRODUCT_ID]"
+        const val CUSTOMER_ID = "[ORG_ID]"
+        const val USER_ID = "[USER_ID]"
         const val PROVIDER_NAME = "Dragon Copilot Ambient Android Sample Provider"
 
         const val GEOGRAPHY = "US"
