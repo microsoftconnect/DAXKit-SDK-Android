@@ -13,16 +13,16 @@ import java.util.Date
  * Dragon Copilot service.
  *
  * - **[PARTNER_ID]** / **[PRODUCT_ID]** — Issued when you register with Dragon Copilot.
- * - **[ORG_ID]** — Your healthcare organization's identifier.
+ * - **[CUSTOMER_ID]** — Your customer account's identifier.
  * - **[USER_ID]** — The currently authenticated clinician/provider.
 
  */
 class Configuration {
     companion object {
-        const val PARTNER_ID = "[PARTNER_ID]"
-        const val PRODUCT_ID = "[PRODUCT_ID]"
-        const val CUSTOMER_ID = "[ORG_ID]"
-        const val USER_ID = "[USER_ID]"
+        const val PARTNER_ID = "<YOUR_PARTNER_ID>"
+        const val PRODUCT_ID = "<YOUR_PRODUCT_ID>"
+        const val CUSTOMER_ID = "<YOUR_CUSTOMER_ID>"
+        const val USER_ID = "<YOUR_USER_ID>"
         const val PROVIDER_NAME = "Dragon Copilot Ambient Android Sample Provider"
 
         const val GEOGRAPHY = "US"
@@ -40,6 +40,7 @@ class Configuration {
                 partnerId = PARTNER_ID,
                 customerId = CUSTOMER_ID,
                 geography = GEOGRAPHY,
+                serverEnvironment = Provider.ServerEnvironment.PRODUCTION,
             )
         }
 

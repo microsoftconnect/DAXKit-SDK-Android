@@ -1,13 +1,14 @@
 # Dragon Copilot Ambient SDK Android Sample
 
-This sample application demonstrates how to integrate the Dragon Copilot Ambient SDK into an Android app. Use it as a reference for adding ambient recording, session management, and audio upload capabilities to your own project.
+This sample application demonstrates how to integrate the Dragon Copilot Ambient SDK **3.x** into an Android app. Use it as a reference for adding ambient recording, session management, and audio upload capabilities to your own project.
 
 ## Prerequisites
 
 - **Android Studio** (latest stable release recommended)
 - **Android SDK** with API 33+ (the Ambient SDK supports Android 13.0 and above)
+- **JDK 17** for command-line Gradle builds
 - **Entra ID (Azure AD) app registration** — required to authenticate with the Dragon Copilot service (see [Authentication](#authentication) below)
-- **Dragon Copilot partner credentials** — your Partner ID, Product ID, Org ID, and User ID (see [Configuration](#configuration) below)
+- **Dragon Copilot partner credentials** — your Partner ID, Product ID, Customer ID, and User ID (see [Configuration](#configuration) below)
 
 ## Getting Started
 
@@ -27,9 +28,12 @@ This sample application demonstrates how to integrate the Dragon Copilot Ambient
    ```
    Then edit `auth_config_single_account.json` with your credentials (see [Authentication](#authentication)). This file is git-ignored.
 
-4. **Set your provider IDs** — open [`app/src/main/java/.../config/Configuration.kt`](app/src/main/java/com/microsoft/dragoncopilot/ambient/sample/config/Configuration.kt) and replace the placeholder IDs with values from your account management system (see [Configuration](#configuration)).
+4. **Set your provider IDs** — open [`app/src/main/java/.../config/Configuration.kt`](app/src/main/java/com/microsoft/dragoncopilot/ambient/sample/config/Configuration.kt) and replace the placeholder IDs with values from your account management system (see [Configuration](#configuration)). Keep your test values uncommitted.
 
-5. **Build and run** the app on a device or emulator running API 33+.
+5. **Build and run** the app on a device or emulator running API 33+:
+   ```sh
+   ./gradlew :app:assembleDebug :app:installDebug
+   ```
 
 ## Project Structure
 
@@ -59,15 +63,23 @@ The Ambient SDK is declared in [`gradle/libs.versions.toml`](gradle/libs.version
 `libs.versions.toml`
 
 ```toml
-ambientVersion = "2.0.0"
+ambientVersion = "3.0.1"
 microsoft-dragoncopilot-ambient = { group = "com.microsoft.dragoncopilot.ambient", name = "dragoncopilot-ambient", version.ref = "ambientVersion" }
 ```
 
 `app/build.gradle.kts`
 
 ```kotlin
-implementation(libs.microsoft.dragoncopilot.ambient)
+implementation(libs.microsoft.dragoncopilot.ambient) {
+    version { strictly(ambientSdkVersion) }
+}
 ```
+
+The app uses the catalog's single 3.x pin, unless overridden with
+`-PambientSdkVersion=<3.x-version>`. Other major versions are rejected.
+`AmbientApplication` implements the SDK's 3.x listener directly, including the
+input-device argument and digital-silence callback; there are no compatibility
+adapters or version-dependent source sets.
 
 ### Permissions
 
@@ -144,10 +156,10 @@ Before creating an `AmbientClient`, you must configure a `Provider` with your pa
 ```kotlin
 class Configuration {
     companion object {
-        const val PARTNER_ID = /* your partner ID */
-        const val PRODUCT_ID = /* your product ID */
-        const val ORG_ID = /* your org ID */
-        const val USER_ID = /* your user ID */
+        const val PARTNER_ID = "<YOUR_PARTNER_ID>"
+        const val PRODUCT_ID = "<YOUR_PRODUCT_ID>"
+        const val CUSTOMER_ID = "<YOUR_CUSTOMER_ID>"
+        const val USER_ID = "<YOUR_USER_ID>"
         const val PROVIDER_NAME = "Dragon Copilot Ambient Android Sample Provider"
 
         const val GEOGRAPHY = "US"
@@ -158,8 +170,9 @@ class Configuration {
                 name = PROVIDER_NAME,
                 productId = PRODUCT_ID,
                 partnerId = PARTNER_ID,
-                orgId = ORG_ID,
+                customerId = CUSTOMER_ID,
                 geography = GEOGRAPHY,
+                serverEnvironment = Provider.ServerEnvironment.PRODUCTION,
             )
         }
     }
@@ -207,7 +220,7 @@ Recording is managed through the SDK's session and recording lifecycle. See the 
 val session = client.session(sessionId, ehrData, locale, locale)
 
 // 2. Start recording — returns an AmbientRecording, callbacks go to the Listener
-val recording = session.startRecording(arrayOf(locale), noteGeneration, listener)
+val recording = session.startRecording(arrayOf(locale), noteGeneration, listener = listener)
 
 // 3. Stop recording — the SDK automatically begins uploading the audio
 recording.stop()
@@ -215,7 +228,8 @@ recording.stop()
 
 The `AmbientRecording.Listener` provides real-time feedback during recording:
 
-- `onRecordingStarted(recordingId, sessionId)` — Recording has begun
+- `onRecordingStarted(recordingId, sessionId, inputDevice)` — Recording has begun
+- `onDigitalSilenceDetected(recordingId, sessionId)` — The microphone supplied zero-valued audio; the sample warns the user without stopping or clearing the recording
 - `onRecordedAudio(recordingId, sessionId, duration, level)` — Live audio level and elapsed time updates
 - `onRecordingStopped(recordingId, sessionId, duration)` — Recording complete with final duration
 - `onRecordingInterrupted(recordingId, sessionId, reason, details)` — Recording was interrupted

@@ -2,6 +2,7 @@ package com.microsoft.dragoncopilot.ambient.sample
 
 import android.app.Application
 import android.util.Log
+import com.microsoft.dragoncopilot.ambient.AmbientAudioInputDevice
 import com.microsoft.dragoncopilot.ambient.AmbientClient
 import com.microsoft.dragoncopilot.ambient.AmbientRecording
 import com.microsoft.dragoncopilot.ambient.AmbientSession
@@ -202,7 +203,7 @@ class AmbientApplication : EntraAuthListener, AmbientClient.Listener, AmbientRec
             val recording = session.startRecording(
                 arrayOf(Locale.getDefault()), // spoken language(s) expected in the recording
                 true,  // noteGeneration — set to true to generate clinical notes
-                this,  // AmbientRecording.Listener — receives real-time audio callbacks
+                listener = this,  // Receives real-time audio callbacks; use default output forms
             )
             ambientRecording = recording
         } catch (e: Exception) {
@@ -231,7 +232,11 @@ class AmbientApplication : EntraAuthListener, AmbientClient.Listener, AmbientRec
     // These callbacks fire on a background thread during an active recording.
 
     /** Called once when audio capture begins. Use this to update UI to a "recording" state. */
-    override fun onRecordingStarted(recordingId: String, sessionId: String) {
+    override fun onRecordingStarted(
+        recordingId: String,
+        sessionId: String,
+        inputDevice: AmbientAudioInputDevice,
+    ) {
         Log.i("AmbientApp", "Recording started: $recordingId in session $sessionId")
         _recordingState.value = RecordingState(
             isRecording = true,
@@ -241,6 +246,13 @@ class AmbientApplication : EntraAuthListener, AmbientClient.Listener, AmbientRec
             audioLevel = 0f,
         )
         _events.trySend(Event("Recording started"))
+    }
+
+    override fun onDigitalSilenceDetected(recordingId: String, sessionId: String) {
+        _events.trySend(Event(
+            "Microphone supplied silent audio for recording $recordingId. " +
+                "Check the microphone; some audio was not captured."
+        ))
     }
 
     /** Called when the recording finishes normally. The SDK begins uploading automatically. */
