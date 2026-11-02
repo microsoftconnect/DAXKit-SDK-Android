@@ -5,6 +5,12 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val ambientSdkVersion = providers.gradleProperty("ambientSdkVersion")
+    .orElse(libs.versions.ambientVersion).get()
+require(ambientSdkVersion.substringBefore(".") == "3") {
+    "The sample requires Ambient SDK 3.x; check ambientSdkVersion."
+}
+
 android {
     namespace = "com.microsoft.dragoncopilot.ambient.sample"
     compileSdk {
@@ -54,7 +60,9 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.navigation)
     implementation(libs.androidx.compose.viewmodel)
-    implementation(libs.microsoft.dragoncopilot.ambient)
+    implementation(libs.microsoft.dragoncopilot.ambient) {
+        version { strictly(ambientSdkVersion) }
+    }
     implementation(libs.microsoft.identity.client.msal)
     {
         exclude(group = "com.microsoft.device.display")
